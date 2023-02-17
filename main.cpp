@@ -2,6 +2,7 @@
 #include <set>
 #include <string>
 #include <vector>
+#include <map>
 
 using namespace std;
 
@@ -56,13 +57,13 @@ vector<string> SplitIntoWordsNoStop(const string& text, const set<string>& stop_
     return words;
 }
 
-void AddDocument(vector<pair<int, vector<string>>>& documents,
+void AddDocument(map<string, set<int>>& word_in_documents,
                  const set<string>& stop_words,
-                 int document_id, 
+                 int document_id,
                  const string& document) {
-    
-    pair<int, vector<string>> words{document_id, SplitIntoWordsNoStop(document, stop_words)};
-    documents.push_back(words);
+    for (const string& word : SplitIntoWordsNoStop(document, stop_words)) {
+        word_in_documents[word].insert(document_id);
+    }
 }
 
 set<string> ParseQuery(const string& text, const set<string>& stop_words) {
@@ -73,32 +74,23 @@ set<string> ParseQuery(const string& text, const set<string>& stop_words) {
     return query_words;
 }
 
-int MatchDocument(const pair<int, vector<string>>& content, 
-                  const set<string>& query_words) {
-    int relevance = 0;
-    auto [id, document] = content;
-    for (string& word: document) {
-        if (query_words.count(word) != 0) {
-            ++relevance;
-        }
-    }
-    return relevance;
-}
-
-// Для каждого найденного документа возвращает его id
-vector<pair<int, int>> FindDocuments(const vector<pair<int, vector<string>>>& documents,
+vector<pair<int, int>> FindAllDocuments(const map<string, set<int>>& word_in_documents,
                                      const set<string>& stop_words,
                                      const string& query) {
     const set<string> query_words = ParseQuery(query, stop_words);
-    vector<pair<int, int>> matched_documents;
-    int document_id = 0;
-    int relevance = 0;
-    for (const auto& content : documents) {
-        relevance = MatchDocument(content, query_words);
-        if (relevance != 0) {
-            matched_documents.push_back({document_id, relevance});
+
+    map<int, int> documents_relevance;
+    for (const string& word : query_words) {
+        if (word_in_documents.count(word) != 0) {
+            for (const int document_id: word_in_documents.at(word)) {
+                ++documents_relevance[document_id];
+            }
         }
-        ++document_id;
+    }
+
+    vector<pair<int, int>> matched_documents;
+    for (auto& [document_id, relevance]: documents_relevance) {
+        matched_documents.push_back({document_id, relevance});
     }
     return matched_documents;
 }
@@ -107,16 +99,16 @@ int main() {
     const string stop_words_joined = ReadLine();
     const set<string> stop_words = ParseStopWords(stop_words_joined);
 
-    // Считываем документы
-    vector<pair<int, vector<string>>> documents;
+    // Reads docs
+    map<string, set<int>> documents;
     const int document_count = ReadLineWithNumber();
     for (int document_id = 0; document_id < document_count; ++document_id) {
         AddDocument(documents, stop_words, document_id, ReadLine());
     }
 
     const string query = ReadLine();
-    // Выводим результаты поиска по запросу query
-    for (auto [document_id, relevance] : FindDocuments(documents, stop_words, query)) {
+    // Print all results on query
+    for (auto [document_id, relevance] : FindAllDocuments(documents, stop_words, query)) {
         cout << "{ document_id = "s << document_id << ", relevance = "s << relevance << " }"s
              << endl;
     }
