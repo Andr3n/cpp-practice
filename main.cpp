@@ -3,6 +3,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <execution>
 
 using namespace std;
 
@@ -96,7 +97,8 @@ vector<pair<int, int>> FindDocuments(const map<string, set<int>>& word_in_docume
         documents_relevance_reversed.push_back({relevance, document_id});
     }
 
-    sort(documents_relevance_reversed.begin(), documents_relevance_reversed.end());
+    sort(execution::par, documents_relevance_reversed.begin(), documents_relevance_reversed.end());
+    // sort(documents_relevance_reversed.begin(), documents_relevance_reversed.end());
     reverse(documents_relevance_reversed.begin(), documents_relevance_reversed.end());
 
     if (!get_all_results && documents_relevance_reversed.size() > MAX_RESULT_DOCUMENT_COUNT) {
