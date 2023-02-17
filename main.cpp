@@ -1,10 +1,12 @@
 #include <iostream>
-#include <set>
-#include <string>
+#include <algorithm>
 #include <vector>
+#include <set>
 #include <map>
 
 using namespace std;
+
+const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
 string ReadLine() {
     string s;
@@ -74,23 +76,37 @@ set<string> ParseQuery(const string& text, const set<string>& stop_words) {
     return query_words;
 }
 
-vector<pair<int, int>> FindAllDocuments(const map<string, set<int>>& word_in_documents,
+vector<pair<int, int>> FindDocuments(const map<string, set<int>>& word_in_documents,
                                      const set<string>& stop_words,
-                                     const string& query) {
+                                     const string& query,
+                                     const bool& get_all_results) {
+    int counter = 0;
     const set<string> query_words = ParseQuery(query, stop_words);
 
     map<int, int> documents_relevance;
     for (const string& word : query_words) {
         if (word_in_documents.count(word) != 0) {
-            for (const int document_id: word_in_documents.at(word)) {
+            for (const int& document_id: word_in_documents.at(word)) {
                 ++documents_relevance[document_id];
             }
         }
     }
 
-    vector<pair<int, int>> matched_documents;
+    vector<pair<int, int>> documents_relevance_reversed;
     for (auto& [document_id, relevance]: documents_relevance) {
+        documents_relevance_reversed.push_back({relevance, document_id});
+    }
+
+    sort(documents_relevance_reversed.begin(), documents_relevance_reversed.end());
+    reverse(documents_relevance_reversed.begin(), documents_relevance_reversed.end());
+
+    vector<pair<int, int>> matched_documents;
+    for (auto& [relevance, document_id]: documents_relevance_reversed) {
+        if (!get_all_results && counter == MAX_RESULT_DOCUMENT_COUNT) {
+            return matched_documents;
+        }
         matched_documents.push_back({document_id, relevance});
+        ++counter;
     }
     return matched_documents;
 }
@@ -106,9 +122,16 @@ int main() {
         AddDocument(documents, stop_words, document_id, ReadLine());
     }
 
-    const string query = ReadLine();
+    // const string query = ReadLine();
     // Print all results on query
-    for (auto [document_id, relevance] : FindAllDocuments(documents, stop_words, query)) {
+    // for (auto [document_id, relevance] : FindDocuments(documents, stop_words, query, true)) {
+    //     cout << "{ document_id = "s << document_id << ", relevance = "s << relevance << " }"s
+    //          << endl;
+    // }
+
+    const string query = ReadLine();
+    // Prints the specified number of results
+    for (auto [document_id, relevance] : FindDocuments(documents, stop_words, query, false)) {
         cout << "{ document_id = "s << document_id << ", relevance = "s << relevance << " }"s
              << endl;
     }
