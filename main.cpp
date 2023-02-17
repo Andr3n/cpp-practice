@@ -80,7 +80,6 @@ vector<pair<int, int>> FindDocuments(const map<string, set<int>>& word_in_docume
                                      const set<string>& stop_words,
                                      const string& query,
                                      const bool& get_all_results) {
-    int counter = 0;
     const set<string> query_words = ParseQuery(query, stop_words);
 
     map<int, int> documents_relevance;
@@ -100,13 +99,13 @@ vector<pair<int, int>> FindDocuments(const map<string, set<int>>& word_in_docume
     sort(documents_relevance_reversed.begin(), documents_relevance_reversed.end());
     reverse(documents_relevance_reversed.begin(), documents_relevance_reversed.end());
 
+    if (!get_all_results && documents_relevance_reversed.size() > MAX_RESULT_DOCUMENT_COUNT) {
+            documents_relevance_reversed.resize(MAX_RESULT_DOCUMENT_COUNT);
+        }
+
     vector<pair<int, int>> matched_documents;
     for (auto& [relevance, document_id]: documents_relevance_reversed) {
-        if (!get_all_results && counter == MAX_RESULT_DOCUMENT_COUNT) {
-            return matched_documents;
-        }
         matched_documents.push_back({document_id, relevance});
-        ++counter;
     }
     return matched_documents;
 }
