@@ -9,6 +9,11 @@ using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
+struct Document {
+    int id;
+    int relevance;
+};
+
 string ReadLine() {
     string s;
     getline(cin, s);
@@ -77,7 +82,7 @@ set<string> ParseQuery(const string& text, const set<string>& stop_words) {
     return query_words;
 }
 
-vector<pair<int, int>> FindDocuments(const map<string, set<int>>& word_in_documents,
+vector<Document> FindDocuments(const map<string, set<int>>& word_in_documents,
                                      const set<string>& stop_words,
                                      const string& query,
                                      const bool& get_all_results) {
@@ -105,7 +110,7 @@ vector<pair<int, int>> FindDocuments(const map<string, set<int>>& word_in_docume
             documents_relevance_reversed.resize(MAX_RESULT_DOCUMENT_COUNT);
         }
 
-    vector<pair<int, int>> matched_documents;
+    vector<Document> matched_documents;
     for (auto& [relevance, document_id]: documents_relevance_reversed) {
         matched_documents.push_back({document_id, relevance});
     }
