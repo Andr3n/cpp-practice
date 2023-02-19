@@ -14,6 +14,10 @@ struct Document {
     int relevance;
 };
 
+bool HasDocumentGreaterRelevance(const Document& lhs, const Document& rhs) {
+		return lhs.relevance > rhs.relevance;
+}
+
 string ReadLine() {
     string s;
     getline(cin, s);
@@ -97,23 +101,17 @@ vector<Document> FindDocuments(const map<string, set<int>>& word_in_documents,
         }
     }
 
-    vector<pair<int, int>> documents_relevance_reversed;
-    for (auto& [document_id, relevance]: documents_relevance) {
-        documents_relevance_reversed.push_back({relevance, document_id});
-    }
-
-    sort(execution::par, documents_relevance_reversed.begin(), documents_relevance_reversed.end());
-    // sort(documents_relevance_reversed.begin(), documents_relevance_reversed.end());
-    reverse(documents_relevance_reversed.begin(), documents_relevance_reversed.end());
-
-    if (!get_all_results && documents_relevance_reversed.size() > MAX_RESULT_DOCUMENT_COUNT) {
-            documents_relevance_reversed.resize(MAX_RESULT_DOCUMENT_COUNT);
-        }
-
     vector<Document> matched_documents;
-    for (auto& [relevance, document_id]: documents_relevance_reversed) {
+    for (auto& [document_id, relevance]: documents_relevance) {
         matched_documents.push_back({document_id, relevance});
     }
+
+    sort(execution::par, matched_documents.begin(), matched_documents.end(), HasDocumentGreaterRelevance);
+
+    if (!get_all_results && matched_documents.size() > MAX_RESULT_DOCUMENT_COUNT) {
+            matched_documents.resize(MAX_RESULT_DOCUMENT_COUNT);
+    }
+
     return matched_documents;
 }
 
