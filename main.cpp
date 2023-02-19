@@ -27,6 +27,11 @@ struct Document {
     int relevance;
 };
 
+struct Query {
+    set<string> plus_words;
+    set<string> minus_words;
+};
+
 class SearchServer {
     // PRIVATE //
     private:
@@ -66,13 +71,21 @@ class SearchServer {
         }
 
         vector<Document> FindAllDocuments(const string& query) const {
-            const set<string> query_words = ParseQuery(query);
-
+            const Query query_words = ParseQuery(query);
+            
             map<int, int> documents_relevance;
-            for (const string& word : query_words) {
+            for (const string& word : query_words.plus_words) {
                 if (word_in_documents_.count(word) != 0) {
                     for (const int& document_id: word_in_documents_.at(word)) {
                         ++documents_relevance[document_id];
+                    }
+                }
+            }
+
+            for (const string& word : query_words.minus_words) {
+                if (word_in_documents_.count(word) != 0) {
+                    for (const int& document_id: word_in_documents_.at(word)) {
+                        documents_relevance.erase(document_id);
                     }
                 }
             }
@@ -85,12 +98,18 @@ class SearchServer {
             return matched_documents;
         }
 
-        set<string> ParseQuery(const string& text) const {
-            set<string> query_words;
+        Query ParseQuery(const string& text) const {
+            Query query;
             for (const string& word : SplitIntoWordsNoStop(text)) {
-                query_words.insert(word);
+                if (word.find("-"s) != -1) {
+                    query.minus_words.insert(word.substr(1));
+                }
+                else {
+                    query.plus_words.insert(word);
+                }
             }
-            return query_words;
+
+            return query;
         }
 
     // PUBLIC //
