@@ -44,7 +44,10 @@ class SearchServer {
         int document_count_ = 0;
         
         static int ComputeAverageRating(const vector<int>& ratings) {
-            return accumulate(ratings.begin(), ratings.end(), 0) / ratings.size();
+            if (ratings.empty()) {
+                return 0;
+            }
+            return accumulate(ratings.begin(), ratings.end(), 0) / static_cast<int>(ratings.size());
         }
 
         vector<int> SplitIntoNumbers(const string& text) const {
@@ -94,7 +97,7 @@ class SearchServer {
             map<int, double> documents_relevance;
             for (const string& word : query_words.plus_words) {
                 if (word_in_document_freqs_.count(word) != 0) {
-                    const double inverse_document_freq = log(document_count_ / (word_in_document_freqs_.at(word).size() * 1.0));
+                    const double inverse_document_freq = log(document_count_ / static_cast<double>(word_in_document_freqs_.at(word).size()));
                     for (const auto& [document_id, term_freq]: word_in_document_freqs_.at(word)) {
                         documents_relevance[document_id] += term_freq * inverse_document_freq;
                     }
@@ -166,7 +169,6 @@ class SearchServer {
 
             return matched_documents;
         }
-        
 };
 
 SearchServer CreateSearchServer() {
