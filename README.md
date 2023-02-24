@@ -1,2 +1,2 @@
-# simple-search-engine
+# cpp-practive
 Based on education course from practicum.yandex.ru
