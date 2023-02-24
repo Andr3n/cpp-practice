@@ -6,7 +6,6 @@
 #include <execution>
 #include <cmath>
 #include <numeric>
-#include <tuple>
 #include <functional>
 
 using namespace std;
