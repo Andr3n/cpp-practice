@@ -52,6 +52,7 @@ void TestAddingSynonymsIncreasesTheirCount() {
     assert(synonyms.GetSynonymCount("music"s) == 2);
     assert(synonyms.GetSynonymCount("tune"s) == 1);
     assert(synonyms.GetSynonymCount("melody"s) == 1);
+    cout << "TestAddingSynonymsIncreasesTheirCount is OK"s << endl;
 }
 
 void TestAreSynonyms() {
@@ -64,11 +65,13 @@ void TestAreSynonyms() {
     assert(synonyms.AreSynonyms("tune"s, "music"s) == true);
     assert(synonyms.AreSynonyms("mass"s, "music"s) == false);
     assert(synonyms.AreSynonyms("dance"s, "music"s) == false);
+    cout << "TestAreSynonyms is OK"s << endl;
 }
 
 void TestSynonyms() {
     TestAddingSynonymsIncreasesTheirCount();
     TestAreSynonyms();
+    cout << "TestSynonyms is OK"s << endl;
 }
 
 int main() {
