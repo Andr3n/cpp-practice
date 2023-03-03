@@ -7,6 +7,7 @@
 #include <cmath>
 #include <numeric>
 #include <functional>
+#include <cassert>
 
 using namespace std;
 
@@ -117,6 +118,11 @@ class SearchServer {
             }
 
             return matched_documents;
+        }
+
+        function<int(vector<int>)> GetComputeAverageRatingFunc() {
+            auto& func = ComputeAverageRating;
+            return func;
         }
 
     // PRIVATE //
@@ -250,7 +256,158 @@ void PrintDocument(const Document& document) {
     << " }"s << endl;
 }
 
+// -------- Starting Search Engine Unit Tests ----------
+
+// Корректное вычисление релевантности найденных документов.
+
+// The test checks that the search engine excludes stop words when adding documents
+void TestExcludeStopWordsFromAddedDocumentContent() {
+    const int doc_id = 42;
+    const string content = "cat in the city"s;
+    const vector<int> ratings = {1, 2, 3};
+    // First, we make sure that the search for a word that is not included 
+    // in the list of stop words finds the right document.
+    {
+        SearchServer server;
+        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
+        const auto found_docs = server.FindTopDocuments("in"s);
+        assert(found_docs.size() == 1);
+        const Document& doc0 = found_docs[0];
+        assert(doc0.id == doc_id);
+    }
+
+    // Then we make sure that the search for the same 
+    // word included in the list of stop words returns an empty result
+    {
+        SearchServer server;
+        server.SetStopWords("in the"s);
+        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
+        assert(server.FindTopDocuments("in"s).empty());
+    }
+
+    // Then we make sure that the search for a minus word 
+    // returns an empty result
+    {
+        SearchServer server;
+        server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
+        assert(server.FindTopDocuments("in -cat"s).empty());
+    }
+
+    cout << "Test ExcludeStopWordsFromAddedDocumentContent passed!" << endl;
+}
+
+void TestMatchingDocuments() {
+    const vector<int> doc_id = {1, 2, 0};
+    // Check sort by relevance
+    {
+        SearchServer server;
+        server.SetStopWords("и в на"s);
+        server.AddDocument(0, "белый кот и модный ошейник"s,        DocumentStatus::ACTUAL, {8, -3});
+        server.AddDocument(1, "пушистый кот пушистый хвост"s,       DocumentStatus::ACTUAL, {7, 2, 7});
+        server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, {5, -12, 2, 1});
+        const auto found_docs = server.FindTopDocuments("пушистый ухоженный кот"s);
+        assert(found_docs.size() == 3);
+        assert(found_docs.size() == doc_id.size());
+
+        int index = 0;
+        bool test_passed = true;
+        for (auto& doc: found_docs) {
+            if (doc.id != doc_id.at(index)) {
+                test_passed = false;
+                break;
+            }
+            ++index;
+        }
+        assert(test_passed);
+    }
+
+    // Get documents with a predicate
+    {
+        SearchServer server;
+        server.SetStopWords("и в на"s);
+        server.AddDocument(2, "белый кот и модный ошейник"s,  DocumentStatus::ACTUAL, {8, -3});
+        server.AddDocument(3, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, {7, 2, 7});
+        const auto found_docs = server.FindTopDocuments("пушистый ухоженный кот"s, 
+                                                        [](int document_id, DocumentStatus status, int rating) 
+                                                        { return document_id % 2 == 0; });
+        assert(found_docs.size() == 1);
+        const Document& doc0 = found_docs[0];
+        assert(doc0.id == 2);
+    }
+
+    // Get documents with a determinate status
+    {
+        SearchServer server;
+        server.SetStopWords("и в на"s);
+        server.AddDocument(2, "белый кот и модный ошейник"s,  DocumentStatus::ACTUAL, {8, -3});
+        server.AddDocument(3, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, {7, 2, 7});
+        server.AddDocument(6, "ухоженный скворец евгений кот"s,   DocumentStatus::BANNED, {9});
+        const auto found_docs = server.FindTopDocuments("пушистый ухоженный кот"s, 
+                                                        [](int document_id, DocumentStatus status, int rating) 
+                                                        { return status == DocumentStatus::BANNED; });
+        assert(found_docs.size() == 1);
+        const Document& doc0 = found_docs[0];
+        assert(doc0.id == 6);
+    }
+
+    cout << "Test MatchingDocuments passed!"s << endl;
+}
+
+void TestCalculations() {
+    
+    const vector<vector<int>> ratings = {{5, 3, -1}, {2, 9, 0, 1}, {2, 4, 6}, {1, 2, 5}, {0, 0, -4}};
+    const vector<int> mean_rating = {2, 3, 4, 2, -1};
+    // Test mean rating calculation
+    {
+        SearchServer server;
+        vector<int> res_means;
+        auto ComputeAverageRating = server.GetComputeAverageRatingFunc();
+        for (auto& doc_r:ratings) {
+            res_means.push_back(ComputeAverageRating(doc_r));
+        }
+        assert(res_means == mean_rating);
+    }
+
+    // Test correct calc of relevance
+    const vector<double> relevance = {0.650672, 0.274653, 0.101366};
+    {
+        SearchServer server;
+        server.SetStopWords("и в на"s);
+        server.AddDocument(0, "белый кот и модный ошейник"s,        DocumentStatus::ACTUAL, {8, -3});
+        server.AddDocument(1, "пушистый кот пушистый хвост"s,       DocumentStatus::ACTUAL, {7, 2, 7});
+        server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, {9});
+        const auto found_docs = server.FindTopDocuments("пушистый ухоженный кот"s);
+        vector<double> res_relevance;
+        for (auto& doc: found_docs) {
+            res_relevance.push_back(doc.relevance);
+        }
+
+        assert(res_relevance.size() == relevance.size());
+        
+        int counter = 0;
+        for (size_t i=0; i<res_relevance.size();++i) {
+            if (abs(res_relevance.at(i) - relevance.at(i)) < EPSILON) {
+                ++counter;
+            }
+        }
+        assert(counter == 3);
+    }
+    cout << "Test Calculations passed!" << endl;
+}
+
+// The entry point for running tests
+void TestSearchServer() {
+    TestExcludeStopWordsFromAddedDocumentContent();
+    TestMatchingDocuments();
+    TestCalculations();
+    cout << "All unit tests passed!"s << endl;
+    cout << "================================"s << endl;
+}
+
+// --------- End of search engine unit tests -----------
+
 int main() {
+    TestSearchServer();
     // const SearchServer search_server = CreateSearchServer();
 
     // const string query = ReadLine();
