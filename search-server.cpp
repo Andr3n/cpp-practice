@@ -6,7 +6,6 @@
 #include <execution>
 #include <cmath>
 #include <numeric>
-#include <functional>
 #include <cassert>
 #include "print-templates.cpp"
 
@@ -86,8 +85,9 @@ class SearchServer {
             return matched_documents;
         }
 
+        template <typename T>
         vector<Document> FindTopDocuments(const string& query, 
-                                        function<bool(int, DocumentStatus, int)> filter) const {
+                                        T filter) const {
                                             
             vector<Document> matched_documents = FindAllDocuments(query, filter);
 
