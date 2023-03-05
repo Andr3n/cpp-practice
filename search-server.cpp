@@ -8,6 +8,7 @@
 #include <numeric>
 #include <functional>
 #include <cassert>
+#include "print-templates.cpp"
 
 using namespace std;
 
@@ -44,21 +45,6 @@ struct Query {
     set<string> plus_words;
     set<string> minus_words;
 };
-
-template <typename T>
-ostream& operator<<(ostream& out, const vector<T>& container) {
-    out << "{"s;
-    int counter = 0;
-    for (const T& element: container) {
-        out << element;
-        if (counter != (container.size() - 1)) {
-            out << ", "s;
-        }
-        ++counter;
-    }
-    out << "}"s;
-    return out;
-}
 
 class SearchServer {
     public: 
