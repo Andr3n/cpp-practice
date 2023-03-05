@@ -7,13 +7,13 @@ using namespace std;
 void AssertImpl(const bool& v, const string& v_str, const string& file,
                      const string& func, unsigned line, const string& hint) {
     if (v != true) {
-        cout << boolalpha;
-        cout << file << " (line: "s << line << "): "s << func << ": "s;
-        cout << "ASSERT_EQUAL("s << v_str << ") failed."s;
+        cerr << boolalpha;
+        cerr << file << " (line: "s << line << "): "s << func << ": "s;
+        cerr << "ASSERT_EQUAL("s << v_str << ") failed."s;
         if (!hint.empty()) {
-            cout << " Hint: "s << hint;
+            cerr << " Hint: "s << hint;
         }
-        cout << endl;
+        cerr << endl;
         abort();
     }
 }
@@ -26,14 +26,14 @@ template <typename T, typename U>
 void AssertEqualImpl(const T& t, const U& u, const string& t_str, const string& u_str, const string& file,
                      const string& func, unsigned line, const string& hint) {
     if (t != u) {
-        cout << boolalpha;
-        cout << file << " (line: "s << line << "): "s << func << ": "s;
-        cout << "ASSERT_EQUAL("s << t_str << ", "s << u_str << ") failed: "s;
-        cout << t << " != "s << u << "."s;
+        cerr << boolalpha;
+        cerr << file << " (line: "s << line << "): "s << func << ": "s;
+        cerr << "ASSERT_EQUAL("s << t_str << ", "s << u_str << ") failed: "s;
+        cerr << t << " != "s << u << "."s;
         if (!hint.empty()) {
-            cout << " Hint: "s << hint;
+            cerr << " Hint: "s << hint;
         }
-        cout << endl;
+        cerr << endl;
         abort();
     }
 }
@@ -42,9 +42,11 @@ void AssertEqualImpl(const T& t, const U& u, const string& t_str, const string& 
 
 #define ASSERT_EQUAL_HINT(a, b, hint) AssertEqualImpl((a), (b), #a, #b, __FILE__, __FUNCTION__, __LINE__, (hint))
 
-void PrintDiagnosticInformation() {
-    cout << "Function name: "s << __FUNCTION__ << endl;
-    cout << "File name: "s << __FILE__ << endl;
-    cout << "Line number: "s << __LINE__ << endl;
-    cout << "Line number: "s << __LINE__ << endl;
+template <typename T>
+void RunTestImpl(const T& f, const string& f_str, const string& file,
+                 const string& func, unsigned line) {
+    f();
+    cerr << f_str << " passed!" << endl;
 }
+
+#define RUN_TEST(func) RunTestImpl((func), #func, __FILE__, __FUNCTION__, __LINE__) // напишите недостающий код
