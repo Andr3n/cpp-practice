@@ -1,2 +1,2 @@
 # cpp-practice
-Based on education course from practicum.yandex.ru
+Repository with lots of practical work using c++
