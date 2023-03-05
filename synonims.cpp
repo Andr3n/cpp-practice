@@ -1,9 +1,9 @@
-#include <cassert>
 #include <iostream>
 #include <map>
 #include <set>
 #include <sstream>
 #include <string>
+#include "unit-tests-lib.cpp"
 
 using namespace std;
 
@@ -41,37 +41,39 @@ private:
 
 void TestAddingSynonymsIncreasesTheirCount() {
     Synonyms synonyms;
-    assert(synonyms.GetSynonymCount("music"s) == 0);
-    assert(synonyms.GetSynonymCount("melody"s) == 0);
+    ASSERT_EQUAL(synonyms.GetSynonymCount("music"s), 0);
+    ASSERT_EQUAL(synonyms.GetSynonymCount("melody"s), 0);
 
     synonyms.Add("music"s, "melody"s);
-    assert(synonyms.GetSynonymCount("music"s) == 1);
-    assert(synonyms.GetSynonymCount("melody"s) == 1);
+    ASSERT_EQUAL(synonyms.GetSynonymCount("music"s), 1);
+    ASSERT_EQUAL(synonyms.GetSynonymCount("melody"s), 1);
 
     synonyms.Add("music"s, "tune"s);
-    assert(synonyms.GetSynonymCount("music"s) == 2);
-    assert(synonyms.GetSynonymCount("tune"s) == 1);
-    assert(synonyms.GetSynonymCount("melody"s) == 1);
-    cout << "TestAddingSynonymsIncreasesTheirCount is OK"s << endl;
+    ASSERT_EQUAL(synonyms.GetSynonymCount("music"s), 2);
+    ASSERT_EQUAL(synonyms.GetSynonymCount("tune"s), 1);
+    ASSERT_EQUAL(synonyms.GetSynonymCount("melody"s), 1);
+    cout << "Test AddingSynonymsIncreasesTheirCount passed!"s << endl;
 }
 
 void TestAreSynonyms() {
     Synonyms synonyms;
     synonyms.Add("music"s, "melody"s);
     synonyms.Add("music"s, "tune"s);
-    assert(synonyms.AreSynonyms("music"s, "tune"s) == true);
-    assert(synonyms.AreSynonyms("music"s, "melody"s) == true);
-    assert(synonyms.AreSynonyms("melody"s, "music"s) == true);
-    assert(synonyms.AreSynonyms("tune"s, "music"s) == true);
-    assert(synonyms.AreSynonyms("mass"s, "music"s) == false);
-    assert(synonyms.AreSynonyms("dance"s, "music"s) == false);
-    cout << "TestAreSynonyms is OK"s << endl;
+    ASSERT(synonyms.AreSynonyms("music"s, "tune"s) == true);
+    ASSERT(synonyms.AreSynonyms("music"s, "melody"s) == true);
+
+    ASSERT(synonyms.AreSynonyms("melody"s, "music"s) == true);
+    ASSERT(synonyms.AreSynonyms("tune"s, "music"s) == true);
+
+    ASSERT(synonyms.AreSynonyms("mass"s, "music"s) == false);
+    ASSERT(synonyms.AreSynonyms("dance"s, "music"s) == false);
+    cout << "Test AreSynonyms passed!"s << endl;
 }
 
 void TestSynonyms() {
     TestAddingSynonymsIncreasesTheirCount();
     TestAreSynonyms();
-    cout << "TestSynonyms is OK"s << endl;
+    cout << "Test Synonyms passed!"s << endl;
 }
 
 int main() {
