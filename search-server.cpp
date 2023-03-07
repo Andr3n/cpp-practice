@@ -6,8 +6,8 @@
 #include <execution>
 #include <cmath>
 #include <numeric>
-#include <cassert>
 #include "print-templates.cpp"
+#include "unit-tests-lib.cpp"
 
 using namespace std;
 
@@ -257,9 +257,9 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
         SearchServer server;
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
         const auto found_docs = server.FindTopDocuments("in"s);
-        assert(found_docs.size() == 1);
+        ASSERT(found_docs.size() == 1);
         const Document& doc0 = found_docs[0];
-        assert(doc0.id == doc_id);
+        ASSERT(doc0.id == doc_id);
     }
 
     // Then we make sure that the search for the same 
@@ -268,7 +268,7 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
         SearchServer server;
         server.SetStopWords("in the"s);
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        assert(server.FindTopDocuments("in"s).empty());
+        ASSERT(server.FindTopDocuments("in"s).empty());
     }
 
     // Then we make sure that the search for a minus word 
@@ -276,10 +276,8 @@ void TestExcludeStopWordsFromAddedDocumentContent() {
     {
         SearchServer server;
         server.AddDocument(doc_id, content, DocumentStatus::ACTUAL, ratings);
-        assert(server.FindTopDocuments("in -cat"s).empty());
+        ASSERT(server.FindTopDocuments("in -cat"s).empty());
     }
-
-    cout << "Test ExcludeStopWordsFromAddedDocumentContent passed!" << endl;
 }
 
 void TestMatchingDocuments() {
@@ -292,8 +290,8 @@ void TestMatchingDocuments() {
         server.AddDocument(1, "пушистый кот пушистый хвост"s,       DocumentStatus::ACTUAL, {7, 2, 7});
         server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, {5, -12, 2, 1});
         const auto found_docs = server.FindTopDocuments("пушистый ухоженный кот"s);
-        assert(found_docs.size() == 3);
-        assert(found_docs.size() == doc_id.size());
+        ASSERT(found_docs.size() == 3);
+        ASSERT(found_docs.size() == doc_id.size());
 
         int index = 0;
         bool test_passed = true;
@@ -304,7 +302,7 @@ void TestMatchingDocuments() {
             }
             ++index;
         }
-        assert(test_passed);
+        ASSERT(test_passed);
     }
 
     // Get documents with a predicate
@@ -316,9 +314,9 @@ void TestMatchingDocuments() {
         const auto found_docs = server.FindTopDocuments("пушистый ухоженный кот"s, 
                                                         [](int document_id, DocumentStatus status, int rating) 
                                                         { return document_id % 2 == 0; });
-        assert(found_docs.size() == 1);
+        ASSERT(found_docs.size() == 1);
         const Document& doc0 = found_docs[0];
-        assert(doc0.id == 2);
+        ASSERT(doc0.id == 2);
     }
 
     // Get documents with a determinate status
@@ -331,12 +329,10 @@ void TestMatchingDocuments() {
         const auto found_docs = server.FindTopDocuments("пушистый ухоженный кот"s, 
                                                         [](int document_id, DocumentStatus status, int rating) 
                                                         { return status == DocumentStatus::BANNED; });
-        assert(found_docs.size() == 1);
+        ASSERT(found_docs.size() == 1);
         const Document& doc0 = found_docs[0];
-        assert(doc0.id == 6);
+        ASSERT(doc0.id == 6);
     }
-
-    cout << "Test MatchingDocuments passed!"s << endl;
 }
 
 void TestCalculations() {
@@ -351,7 +347,7 @@ void TestCalculations() {
         for (auto& doc_r:ratings) {
             res_means.push_back(ComputeAverageRating(doc_r));
         }
-        assert(res_means == mean_rating);
+        ASSERT(res_means == mean_rating);
     }
 
     // Test correct calc of relevance
@@ -368,7 +364,7 @@ void TestCalculations() {
             res_relevance.push_back(doc.relevance);
         }
 
-        assert(res_relevance.size() == relevance.size());
+        ASSERT(res_relevance.size() == relevance.size());
         
         int counter = 0;
         for (size_t i=0; i<res_relevance.size();++i) {
@@ -376,24 +372,21 @@ void TestCalculations() {
                 ++counter;
             }
         }
-        assert(counter == 3);
+        ASSERT(counter == 3);
     }
-    cout << "Test Calculations passed!" << endl;
 }
 
 // The entry point for running tests
 void TestSearchServer() {
-    TestExcludeStopWordsFromAddedDocumentContent();
-    TestMatchingDocuments();
-    TestCalculations();
-    cout << "All unit tests passed!"s << endl;
-    cout << "================================"s << endl;
+    RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent);
+    RUN_TEST(TestMatchingDocuments);
+    RUN_TEST(TestCalculations);
 }
 
 // --------- End of search engine unit tests -----------
 
 int main() {
-    TestSearchServer();
+    RUN_TEST(TestSearchServer);
     // const SearchServer search_server = CreateSearchServer();
 
     // const string query = ReadLine();
