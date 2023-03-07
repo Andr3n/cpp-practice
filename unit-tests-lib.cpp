@@ -49,4 +49,4 @@ void RunTestImpl(const T& f, const string& f_str, const string& file,
     cerr << f_str << " passed!" << endl;
 }
 
-#define RUN_TEST(func) RunTestImpl((func), #func, __FILE__, __FUNCTION__, __LINE__) // напишите недостающий код
+#define RUN_TEST(func) RunTestImpl((func), #func, __FILE__, __FUNCTION__, __LINE__)
