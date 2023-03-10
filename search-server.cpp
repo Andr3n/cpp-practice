@@ -33,27 +33,27 @@ struct Document {
     int rating;
 
     Document()
-        :id(0),
-        relevance(0),
-        rating(0)
+        : id(0)
+        , relevance(0)
+        , rating(0)
     {}
 
     Document(int _id)
-        :id(_id),
-        relevance(0),
-        rating(0)
+        : id(_id)
+        , relevance(0)
+        , rating(0)
     {}
 
     Document(int _id, double _relevance)
-        :id(_id),
-        relevance(_relevance),
-        rating(0)
+        : id(_id)
+        , relevance(_relevance)
+        , rating(0)
     {}
 
     Document(int _id, double _relevance, int _rating)
-        :id(_id),
-        relevance(_relevance),
-        rating(_rating)
+        : id(_id)
+        , relevance(_relevance)
+        , rating(_rating)
     {}
 };
 
