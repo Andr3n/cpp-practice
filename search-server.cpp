@@ -31,6 +31,30 @@ struct Document {
     int id;
     double relevance;
     int rating;
+
+    Document()
+        :id(0),
+        relevance(0),
+        rating(0)
+    {}
+
+    Document(int _id)
+        :id(_id),
+        relevance(0),
+        rating(0)
+    {}
+
+    Document(int _id, double _relevance)
+        :id(_id),
+        relevance(_relevance),
+        rating(0)
+    {}
+
+    Document(int _id, double _relevance, int _rating)
+        :id(_id),
+        relevance(_relevance),
+        rating(_rating)
+    {}
 };
 
 enum class DocumentStatus {
@@ -47,6 +71,18 @@ struct Query {
 
 class SearchServer {
 public: 
+    SearchServer() = default;
+
+    template <typename StringCollection>
+    explicit SearchServer(const StringCollection& stop_words) {
+        set<string> set_words(stop_words.begin(), stop_words.end());
+        swap(stop_words_, set_words);
+    }
+
+    explicit SearchServer(const string& text) {
+        SetStopWords(text);
+    }
+
     void SetStopWords(const string& text) {
             for (const string& word : SplitIntoWords(text)) {
                 stop_words_.insert(word);
@@ -188,7 +224,7 @@ private:
                 DocumentStatus status = document_data_.at(document_id).status;
                 int rating = document_data_.at(document_id).rating;
                 if (filter(document_id, status, rating)) {
-                    matched_documents.push_back({document_id, relevance, rating});
+                    matched_documents.push_back(Document{document_id, relevance, rating});
                 } 
         }
 
@@ -219,8 +255,6 @@ void PrintDocument(const Document& document) {
 }
 
 // -------- Starting Search Engine Unit Tests ----------
-
-// Корректное вычисление релевантности найденных документов.
 
 // The test checks that the search engine excludes stop words when adding documents
 void TestExcludeStopWordsFromAddedDocumentContent() {
@@ -364,8 +398,10 @@ void TestSearchServer() {
 int main() {
     RUN_TEST(TestSearchServer);
 
-    SearchServer search_server;
-    search_server.SetStopWords("и в на"s);
+    vector<string> stop_words = {"и"s, "в"s, "на"s};
+    // SearchServer search_server("и в на"s);
+    SearchServer search_server(stop_words);
+    Document doc{10, 3.5};
 
     search_server.AddDocument(0, "белый кот и модный ошейник"s,        DocumentStatus::ACTUAL, {8, -3});
     search_server.AddDocument(1, "пушистый кот пушистый хвост"s,       DocumentStatus::ACTUAL, {7, 2, 7});
