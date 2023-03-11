@@ -10,6 +10,18 @@ struct Vector2D {
         , y(y0) 
     {}
 
+    Vector2D& operator-=(Vector2D right) {
+        x -= right.x;
+        y -= right.y;
+        return *this;
+    }
+
+    Vector2D& operator+=(Vector2D right) {
+        x += right.x;
+        y += right.y;
+        return *this;
+    }
+
     double x = 0.0;
     double y = 0.0;
 };
@@ -27,8 +39,12 @@ Vector2D operator-(Vector2D v) {
     return Vector2D{-v.x, -v.y};
 }
 
-Vector2D operator+(Vector2D v) {
-    return v;
+Vector2D operator-(Vector2D v1, Vector2D v2) {
+    return v1 -= v2;
+}
+
+Vector2D operator+(Vector2D v1, Vector2D v2) {
+    return v1 += v2;
 }
 
 class Rational {
@@ -63,6 +79,35 @@ public:
         return a;
     }
 
+    Rational& operator-=(Rational right) {
+        numerator_ =  numerator_ * right.Denominator() - right.Numerator() * denominator_;
+        denominator_ *= right.Denominator();
+        Normalize();
+        return *this;
+    }
+
+    Rational& operator+=(Rational right) {
+        numerator_ =  numerator_ * right.Denominator() + right.Numerator() * denominator_;
+        denominator_ *= right.Denominator();
+        Normalize();
+        return *this;
+    }
+
+    Rational& operator*=(Rational right) {
+        numerator_ *= right.Numerator();
+        denominator_ *= right.Denominator();
+        Normalize();
+        return *this;
+    }
+
+
+
+    Rational& operator/=(Rational right) {
+        numerator_ *= right.Denominator();
+        denominator_ *= right.Numerator();
+        Normalize();
+        return *this;
+    }
 
 private:
     void Normalize() {
@@ -80,9 +125,7 @@ private:
 };
 
 Rational operator+(Rational r1, Rational r2) {
-    int numerator = r1.Numerator() * r2.Denominator() + r2.Numerator() * r1.Denominator();
-    int denominator = r1.Denominator() * r2.Denominator();
-    return Rational{numerator, denominator};
+    return r1 += r2;
 }
 
 Rational operator+(Rational r) {
@@ -90,9 +133,7 @@ Rational operator+(Rational r) {
 }
 
 Rational operator-(Rational r1, Rational r2) {
-    int numerator = r1.Numerator() * r2.Denominator() - r2.Numerator() * r1.Denominator();
-    int denominator = r1.Denominator() * r2.Denominator();
-    return Rational{numerator, denominator};
+    return r1 -= r2;
 }
 
 Rational operator-(Rational r) {
@@ -100,15 +141,11 @@ Rational operator-(Rational r) {
 }
 
 Rational operator*(Rational r1, Rational r2) {
-    int numerator = r1.Numerator() *  r2.Numerator();
-    int denominator = r1.Denominator() * r2.Denominator();
-    return Rational{numerator, denominator};
+    return r1 *= r2;
 }
 
 Rational operator/(Rational r1, Rational r2) {
-    int numerator = r1.Numerator() * r2.Denominator() ;
-    int denominator = r1.Denominator() * r2.Numerator();
-    return Rational{numerator, denominator};
+    return r1 /= r2;
 }
 
 ostream& operator<<(ostream& out, const Rational& rational) {
@@ -133,9 +170,14 @@ int main() {
     cout << "Prod = "s     << one_third << " * "s << one_sixth << " = "s <<one_third * one_sixth << endl;
     cout << "Quotient = "s << one_third << " / "s << one_sixth << " = "s <<one_third / one_sixth << endl;
 
-    const Vector2D v{1, 5};
-    const Vector2D v_mul_by_5 = v * 5;
-    cout << "Vector v = " << v << endl;
-    cout << "Vector v * 5 = " << v_mul_by_5 << endl;
-    cout << "Vector -v = " << -v << endl;
+    Vector2D v1{1, 2};
+    cout << "Vector v1 = " << v1 << endl;
+    Vector2D v2{6, 1};
+    Vector2D v3 = v2 + (v1 += v2);
+    Vector2D new_v1_mul_by_5 = v1 * 5;
+    cout << "Vector new_v1 = " << v1 << endl;
+    cout << "Vector new_v1 * 5 = " << new_v1_mul_by_5  << endl;
+    cout << "Vector -v1 = " << -v1 << endl;
+    cout << "Vector v2 = " << v2 << endl;
+    cout << "Vector v3 = v2 + (v1 += v2) = " << v3 << endl;
 }
