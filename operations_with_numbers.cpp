@@ -30,7 +30,6 @@ Vector2D operator*(Vector2D vector, double scalar) {
     return {vector.x * scalar, vector.y * scalar};
 }
 
-
 Vector2D operator*(double scalar, Vector2D vector) {
     return vector * scalar;
 }
@@ -71,6 +70,8 @@ public:
     }
 
     int gcd(int a, int b) {
+        a = abs(a);
+        b = abs(b);
         while (a != b) {
             a > b
             ? a -= b
@@ -80,31 +81,29 @@ public:
     }
 
     Rational& operator-=(Rational right) {
-        numerator_ =  numerator_ * right.Denominator() - right.Numerator() * denominator_;
-        denominator_ *= right.Denominator();
+        numerator_ =  numerator_ * right.denominator_ - right.numerator_ * denominator_;
+        denominator_ *= right.denominator_;
         Normalize();
         return *this;
     }
 
     Rational& operator+=(Rational right) {
-        numerator_ =  numerator_ * right.Denominator() + right.Numerator() * denominator_;
-        denominator_ *= right.Denominator();
+        numerator_ =  numerator_ * right.denominator_ + right.numerator_ * denominator_;
+        denominator_ *= right.denominator_;
         Normalize();
         return *this;
     }
 
     Rational& operator*=(Rational right) {
-        numerator_ *= right.Numerator();
-        denominator_ *= right.Denominator();
+        numerator_ *= right.numerator_;
+        denominator_ *= right.denominator_;
         Normalize();
         return *this;
     }
 
-
-
     Rational& operator/=(Rational right) {
-        numerator_ *= right.Denominator();
-        denominator_ *= right.Numerator();
+        numerator_ *= right.denominator_;
+        denominator_ *= right.numerator_;
         Normalize();
         return *this;
     }
@@ -115,7 +114,7 @@ private:
             numerator_ = -numerator_;
             denominator_ = -denominator_;
         }
-        const int divisor = gcd(abs(numerator_), denominator_);
+        const int divisor = gcd(numerator_, denominator_);
         numerator_ /= divisor;
         denominator_ /= divisor;
     }
@@ -124,28 +123,53 @@ private:
     int denominator_ = 1;
 };
 
-Rational operator+(Rational r1, Rational r2) {
-    return r1 += r2;
+Rational operator+(Rational left, Rational right) {
+    return left += right;
 }
 
 Rational operator+(Rational r) {
     return r;
 }
 
-Rational operator-(Rational r1, Rational r2) {
-    return r1 -= r2;
+Rational operator-(Rational left, Rational right) {
+    return left -= right;
 }
 
 Rational operator-(Rational r) {
     return Rational{-r.Numerator(), r.Denominator()};
 }
 
-Rational operator*(Rational r1, Rational r2) {
-    return r1 *= r2;
+Rational operator*(Rational left, Rational right) {
+    return left *= right;
 }
 
-Rational operator/(Rational r1, Rational r2) {
-    return r1 /= r2;
+Rational operator/(Rational left, Rational right) {
+    return left /= right;
+}
+
+bool operator==(Rational left, Rational right) {
+    return left.Numerator() == right.Numerator() &&
+           left.Denominator() == right.Denominator();
+}
+
+bool operator!=(Rational left, Rational right) {
+    return !(left == right);
+}
+
+bool operator<(Rational left, Rational right) {
+    return left.Numerator() * right.Denominator() < right.Numerator() * left.Denominator();
+}
+
+bool operator>(Rational left, Rational right) {
+    return left.Numerator() * right.Denominator() > right.Numerator() * left.Denominator();
+}
+
+bool operator<=(Rational left, Rational right) {
+    return !(left > right);
+}
+
+bool operator>=(Rational left, Rational right) {
+    return !(left < right);
 }
 
 ostream& operator<<(ostream& out, const Rational& rational) {
@@ -162,22 +186,9 @@ int main() {
     const Rational one_third(1, 3);
     const Rational one_sixth{1,6};
 
-    cout << one_third << endl;
-    cout << one_sixth << endl;
-    cout << "Minus one third = " << -one_third << endl;
-    cout << "Sum = "s      << one_third << " + "s << one_sixth << " = "s << one_third + one_sixth << endl;
-    cout << "Dif = "s      << one_third << " - "s << one_sixth << " = "s <<one_third - one_sixth << endl;
-    cout << "Prod = "s     << one_third << " * "s << one_sixth << " = "s <<one_third * one_sixth << endl;
-    cout << "Quotient = "s << one_third << " / "s << one_sixth << " = "s <<one_third / one_sixth << endl;
-
-    Vector2D v1{1, 2};
-    cout << "Vector v1 = " << v1 << endl;
-    Vector2D v2{6, 1};
-    Vector2D v3 = v2 + (v1 += v2);
-    Vector2D new_v1_mul_by_5 = v1 * 5;
-    cout << "Vector new_v1 = " << v1 << endl;
-    cout << "Vector new_v1 * 5 = " << new_v1_mul_by_5  << endl;
-    cout << "Vector -v1 = " << -v1 << endl;
-    cout << "Vector v2 = " << v2 << endl;
-    cout << "Vector v3 = v2 + (v1 += v2) = " << v3 << endl;
+    cout << boolalpha;
+    cout << "1/3 < 1/6 ? => "s << (one_third < one_sixth) << endl;
+    cout << "1/3 > 1/6 ? => "s << (one_third > one_sixth) << endl;
+    cout << "1/3 <= 2/6 ? => "s << (one_third <= one_sixth * 2) << endl;
+    cout << "1/3 > 2/6 ? => "s << (one_third > one_sixth * 2) << endl;
 }
